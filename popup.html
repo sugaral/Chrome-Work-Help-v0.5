@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>屏幕识别作答</h1>
+      <p class="sub">框选区域 → 视觉模型识别作答</p>
+    </div>
+
+    <div id="configStatus" class="config-status"></div>
+
+    <button id="captureBtn" class="primary-btn">框选区域作答</button>
+    <button id="fullBtn">识别整个页面</button>
+    <p class="tip">
+      快捷键 Alt+Q 可直接框选
+      <a href="#" id="shortcutLink" class="shortcut-link">（自定义快捷键）</a>
+    </p>
+
+    <div class="section">
+      <label for="apiUrl">API 地址（OpenAI 兼容 chat/completions）</label>
+      <input id="apiUrl" placeholder="https://api.openai.com/v1/chat/completions">
+    </div>
+    <div class="section">
+      <label for="apiKey">API Key</label>
+      <input id="apiKey" type="password" placeholder="sk-...">
+    </div>
+    <div class="section">
+      <label for="model">模型名称（需支持视觉输入）</label>
+      <input id="model" placeholder="gpt-4o">
+    </div>
+    <div class="section">
+      <label for="instruction">作答指令</label>
+      <textarea id="instruction" rows="3"></textarea>
+    </div>
+    <div class="section row">
+      <span class="author-label">By: Ws.Claude / 2026-09-08</span>
+      <button id="saveBtn">保存设置</button>
+      <span id="unsavedHint" class="unsaved-hint" style="display:none;">●  有未保存更改</span>
+    </div>
+    <div id="status" class="status"></div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

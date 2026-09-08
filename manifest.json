@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "屏幕识别作答助手",
+  "version": "1.0.0",
+  "description": "框选浏览器屏幕任意区域，调用视觉大模型 API 识别内容并作答",
+  "permissions": ["activeTab", "storage"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "屏幕识别作答助手"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "capture-answer": {
+      "suggested_key": {
+        "default": "Alt+Q"
+      },
+      "description": "框选屏幕区域并作答"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

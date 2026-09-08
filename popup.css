@@ -1,0 +1,129 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  width: 340px;
+  font: 13px/1.6 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+  color: #1f2937;
+  background: #f8fafc;
+}
+
+.container { padding: 14px; }
+
+.header h1 { font-size: 16px; }
+.header .sub { color: #6b7280; font-size: 12px; margin: 2px 0 10px; }
+
+.primary-btn {
+  width: 100%;
+  padding: 10px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.primary-btn:hover { filter: brightness(1.08); }
+.primary-btn:active { transform: scale(0.99); }
+
+#fullBtn {
+  width: 100%;
+  padding: 6px 0;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #2563eb;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  cursor: pointer;
+}
+#fullBtn:hover { background: #dbeafe; }
+
+.tip {
+  color: #9ca3af;
+  font-size: 11px;
+  margin: 8px 0 12px;
+  text-align: center;
+}
+.tip .shortcut-link {
+  color: #2563eb;
+  text-decoration: none;
+}
+.tip .shortcut-link:hover {
+  text-decoration: underline;
+}
+
+.config-status {
+  font-size: 11px;
+  color: #6b7280;
+  margin: -6px 0 10px;
+  text-align: center;
+  min-height: 16px;
+}
+.config-status.loaded { color: #16a34a; }
+.config-status.default { color: #d97706; }
+
+.section { margin-bottom: 10px; }
+.section label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 4px;
+}
+.section input, .section textarea {
+  width: 100%;
+  padding: 7px 9px;
+  font-size: 13px;
+  font-family: inherit;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  background: #fff;
+  outline: none;
+}
+.section input:focus, .section textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+.section textarea { resize: vertical; }
+
+.section.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.author-label {
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: normal;
+}
+.author-label {
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: normal;
+}
+
+#saveBtn {
+  padding: 6px 14px;
+  font-size: 12px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  border-radius: 7px;
+  cursor: pointer;
+}
+#saveBtn:hover { background: #f3f4f6; }
+
+.unsaved-hint {
+  font-size: 11px;
+  color: #d97706;
+  margin-left: 8px;
+}
+
+.status {
+  min-height: 18px;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 4px;
+}
+.status.ok { color: #16a34a; }
+.status.err { color: #dc2626; }
