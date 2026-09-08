@@ -7,14 +7,14 @@ body {
   background: #f8fafc;
 }
 
-.container { padding: 14px; }
+.container { padding: 16px; }
 
 .header h1 { font-size: 16px; }
 .header .sub { color: #6b7280; font-size: 12px; margin: 2px 0 10px; }
 
 .primary-btn {
   width: 100%;
-  padding: 10px 0;
+  padding: 11px 0;
   font-size: 14px;
   font-weight: 600;
   color: #fff;
@@ -22,27 +22,29 @@ body {
   border: none;
   border-radius: 8px;
   cursor: pointer;
+  transition: filter 0.2s, transform 0.1s;
 }
 .primary-btn:hover { filter: brightness(1.08); }
 .primary-btn:active { transform: scale(0.99); }
 
-#fullBtn {
+.secondary-btn {
   width: 100%;
-  padding: 6px 0;
-  margin-top: 6px;
-  font-size: 12px;
+  padding: 8px 0;
+  margin-top: 8px;
+  font-size: 13px;
   color: #2563eb;
   background: #eff6ff;
   border: 1px solid #bfdbfe;
   border-radius: 8px;
   cursor: pointer;
+  transition: background 0.2s;
 }
-#fullBtn:hover { background: #dbeafe; }
+.secondary-btn:hover { background: #dbeafe; }
 
 .tip {
   color: #9ca3af;
   font-size: 11px;
-  margin: 8px 0 12px;
+  margin: 10px 0 16px;
   text-align: center;
 }
 .tip .shortcut-link {
@@ -56,74 +58,44 @@ body {
 .config-status {
   font-size: 11px;
   color: #6b7280;
-  margin: -6px 0 10px;
+  margin: -6px 0 12px;
   text-align: center;
   min-height: 16px;
 }
 .config-status.loaded { color: #16a34a; }
 .config-status.default { color: #d97706; }
 
-.section { margin-bottom: 10px; }
-.section label {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 4px;
-}
-.section input, .section textarea {
-  width: 100%;
-  padding: 7px 9px;
-  font-size: 13px;
-  font-family: inherit;
-  border: 1px solid #d1d5db;
-  border-radius: 7px;
-  background: #fff;
-  outline: none;
-}
-.section input:focus, .section textarea:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-}
-.section textarea { resize: vertical; }
-
-.section.row {
+.footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
 }
-.author-label {
-  font-size: 11px;
-  color: #6b7280;
-  font-weight: normal;
-}
+
 .author-label {
   font-size: 11px;
   color: #6b7280;
   font-weight: normal;
 }
 
-#saveBtn {
-  padding: 6px 14px;
+.settings-btn {
+  padding: 6px 12px;
   font-size: 12px;
-  border: 1px solid #d1d5db;
+  color: #374151;
   background: #fff;
+  border: 1px solid #d1d5db;
   border-radius: 7px;
   cursor: pointer;
+  transition: background 0.2s;
 }
-#saveBtn:hover { background: #f3f4f6; }
-
-.unsaved-hint {
-  font-size: 11px;
-  color: #d97706;
-  margin-left: 8px;
-}
+.settings-btn:hover { background: #f3f4f6; }
 
 .status {
   min-height: 18px;
   font-size: 12px;
   text-align: center;
-  margin-top: 4px;
+  margin-top: 8px;
 }
 .status.ok { color: #16a34a; }
 .status.err { color: #dc2626; }

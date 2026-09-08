@@ -8,14 +8,9 @@ const DEFAULTS = {
 };
 
 const $ = (id) => document.getElementById(id);
-let hasUnsavedChanges = false;
 
 async function load() {
   const cfg = await chrome.storage.local.get(DEFAULTS);
-  $("apiUrl").value = cfg.apiUrl;
-  $("apiKey").value = cfg.apiKey;
-  $("model").value = cfg.model;
-  $("instruction").value = cfg.instruction;
 
   // 显示配置来源提示
   const statusEl = $("configStatus");
@@ -23,32 +18,9 @@ async function load() {
     statusEl.textContent = "✓ 已加载本地配置";
     statusEl.className = "config-status loaded";
   } else {
-    statusEl.textContent = "使用默认配置（请填写 API Key）";
+    statusEl.textContent = "⚠ 请先在软件设置中填写 API Key";
     statusEl.className = "config-status default";
   }
-
-  hasUnsavedChanges = false;
-  updateUnsavedHint();
-}
-
-function updateUnsavedHint() {
-  const hint = $("unsavedHint");
-  if (hint) hint.style.display = hasUnsavedChanges ? "inline" : "none";
-}
-
-function markUnsaved() {
-  hasUnsavedChanges = true;
-  updateUnsavedHint();
-}
-
-function collect() {
-  return {
-    apiUrl: $("apiUrl").value.trim() || DEFAULTS.apiUrl,
-    apiKey: $("apiKey").value.trim(),
-    model: $("model").value.trim() || DEFAULTS.model,
-    instruction: $("instruction").value.trim() || DEFAULTS.instruction,
-    stream: true, // 始终启用流式输出
-  };
 }
 
 function setStatus(text, ok = true) {
@@ -58,15 +30,12 @@ function setStatus(text, ok = true) {
   setTimeout(() => (el.textContent = ""), 2500);
 }
 
-$("saveBtn").addEventListener("click", async () => {
-  await chrome.storage.local.set(collect());
-  hasUnsavedChanges = false;
-  updateUnsavedHint();
-  setStatus("已保存");
-});
-
 $("captureBtn").addEventListener("click", () => launch({ type: "START_SELECTION" }));
 $("fullBtn").addEventListener("click", () => launch({ type: "CAPTURE_FULL" }));
+
+$("settingsBtn").addEventListener("click", () => {
+  window.location.href = "settings.html";
+});
 
 // 快捷键设置链接
 $("shortcutLink").addEventListener("click", (e) => {
@@ -108,14 +77,8 @@ async function launch(message) {
     console.log("[popup] CSS 可能已存在:", error);
   }
 
-  // 保存配置并发送消息
-  await chrome.storage.local.set(collect());
-  hasUnsavedChanges = false;
-  updateUnsavedHint();
-  setStatus("已自动保存配置", true);
-
-  // 延迟 400ms 让用户看到反馈和脚本完成注入
-  await new Promise((r) => setTimeout(r, 400));
+  // 延迟 300ms 让脚本完成注入
+  await new Promise((r) => setTimeout(r, 300));
 
   // 发送启动消息
   console.log("[popup] 发送启动消息:", message.type);
@@ -127,13 +90,5 @@ async function launch(message) {
     setStatus("页面未响应，请重试", false);
   }
 }
-
-// 监听所有表单字段变化
-window.addEventListener("DOMContentLoaded", () => {
-  $("apiUrl").addEventListener("input", markUnsaved);
-  $("apiKey").addEventListener("input", markUnsaved);
-  $("model").addEventListener("input", markUnsaved);
-  $("instruction").addEventListener("input", markUnsaved);
-});
 
 load();

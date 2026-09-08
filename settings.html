@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <button id="backBtn" class="back-btn">← 返回</button>
+      <h1>软件设置</h1>
+    </div>
+
+    <div class="section">
+      <label for="apiUrl">API 地址（OpenAI 兼容 chat/completions）</label>
+      <input id="apiUrl" placeholder="https://api.openai.com/v1/chat/completions">
+    </div>
+    <div class="section">
+      <label for="apiKey">API Key</label>
+      <input id="apiKey" type="password" placeholder="sk-...">
+    </div>
+    <div class="section">
+      <label for="model">模型名称（需支持视觉输入）</label>
+      <input id="model" placeholder="gpt-4o">
+    </div>
+    <div class="section">
+      <label for="instruction">作答指令</label>
+      <textarea id="instruction" rows="5"></textarea>
+    </div>
+
+    <div class="button-row">
+      <span id="unsavedHint" class="unsaved-hint" style="display:none;">●  有未保存更改</span>
+      <button id="saveBtn" class="save-btn">保存设置</button>
+    </div>
+
+    <div id="status" class="status"></div>
+  </div>
+  <script src="settings.js"></script>
+</body>
+</html>
