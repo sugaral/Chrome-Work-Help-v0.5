@@ -1,6 +1,13 @@
 (() => {
   "use strict";
 
+  // 防止重复注入
+  if (window.__SA_CONTENT_LOADED__) {
+    console.log("[屏幕识别作答] Content script 已存在，跳过重复注入");
+    return;
+  }
+  window.__SA_CONTENT_LOADED__ = true;
+
   // 调试日志：确认 content script 已加载
   console.log("[屏幕识别作答] Content script 已加载");
 
@@ -197,12 +204,6 @@
 
   // ============ 消息处理 ============
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    if (msg.type === "PING") {
-      // Popup 用来测试 content script 是否可用
-      sendResponse({ ok: true });
-      return true;
-    }
-
     if (msg.type === "START_SELECTION") {
       startSelection();
     } else if (msg.type === "CAPTURE_FULL") {

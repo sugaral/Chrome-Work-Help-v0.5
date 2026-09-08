@@ -172,7 +172,36 @@ async function readSSE(res, onChunk) {
 chrome.commands.onCommand.addListener(async (command) => {
   if (command !== "capture-answer") return;
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (tab?.id != null) {
-    chrome.tabs.sendMessage(tab.id, { type: "START_SELECTION" }).catch(() => {});
+  if (!tab?.id) return;
+
+  // 检查是否是受限页面
+  if (tab.url.startsWith("chrome://") || tab.url.startsWith("edge://") ||
+      tab.url.startsWith("about:") || tab.url.startsWith("chrome-extension://")) {
+    return;
   }
+
+  // 尝试注入 content script
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ["content.js"]
+    });
+  } catch (error) {
+    console.log("[background] Content script 可能已存在:", error);
+  }
+
+  // 注入 CSS
+  try {
+    await chrome.scripting.insertCSS({
+      target: { tabId: tab.id },
+      files: ["content.css"]
+    });
+  } catch (error) {
+    console.log("[background] CSS 可能已存在:", error);
+  }
+
+  // 发送启动消息
+  setTimeout(() => {
+    chrome.tabs.sendMessage(tab.id, { type: "START_SELECTION" }).catch(() => {});
+  }, 300);
 });

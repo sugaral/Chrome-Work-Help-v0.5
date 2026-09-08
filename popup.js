@@ -75,35 +75,57 @@ $("shortcutLink").addEventListener("click", (e) => {
 });
 
 async function launch(message) {
-  // 先测试 content script 是否可用
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
   console.log("[popup] 尝试连接 tab:", tab.id, tab.url);
 
-  try {
-    const response = await chrome.tabs.sendMessage(tab.id, { type: "PING" });
-    console.log("[popup] PING 成功:", response);
-  } catch (error) {
-    console.error("[popup] PING 失败:", error);
-    setStatus("此页面无法使用，请刷新页面后重试", false);
+  // 检查是否是受限页面
+  if (tab.url.startsWith("chrome://") || tab.url.startsWith("edge://") ||
+      tab.url.startsWith("about:") || tab.url.startsWith("chrome-extension://")) {
+    setStatus("系统页面不支持此功能", false);
     return;
   }
 
-  // 可用则保存配置并发送消息
+  // 尝试注入 content script（如果尚未注入）
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ["content.js"]
+    });
+    console.log("[popup] Content script 注入成功");
+  } catch (error) {
+    console.log("[popup] Content script 可能已存在:", error);
+  }
+
+  // 注入 CSS
+  try {
+    await chrome.scripting.insertCSS({
+      target: { tabId: tab.id },
+      files: ["content.css"]
+    });
+    console.log("[popup] CSS 注入成功");
+  } catch (error) {
+    console.log("[popup] CSS 可能已存在:", error);
+  }
+
+  // 保存配置并发送消息
   await chrome.storage.local.set(collect());
   hasUnsavedChanges = false;
   updateUnsavedHint();
   setStatus("已自动保存配置", true);
 
-  // 延迟 400ms 让用户看到反馈
+  // 延迟 400ms 让用户看到反馈和脚本完成注入
   await new Promise((r) => setTimeout(r, 400));
 
-  // 发送真正的启动消息
+  // 发送启动消息
   console.log("[popup] 发送启动消息:", message.type);
-  chrome.tabs.sendMessage(tab.id, message).catch((err) => {
+  try {
+    await chrome.tabs.sendMessage(tab.id, message);
+    window.close();
+  } catch (err) {
     console.error("[popup] 启动消息发送失败:", err);
-  });
-  window.close();
+    setStatus("页面未响应，请重试", false);
+  }
 }
 
 // 监听所有表单字段变化

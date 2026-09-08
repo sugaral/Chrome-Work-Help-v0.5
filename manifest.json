@@ -3,7 +3,7 @@
   "name": "屏幕识别作答助手",
   "version": "1.0.0",
   "description": "框选浏览器屏幕任意区域，调用视觉大模型 API 识别内容并作答",
-  "permissions": ["activeTab", "storage"],
+  "permissions": ["activeTab", "storage", "scripting"],
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"
