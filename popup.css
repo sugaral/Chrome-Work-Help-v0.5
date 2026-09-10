@@ -79,6 +79,11 @@ body {
   font-weight: normal;
 }
 
+.footer-btns {
+  display: flex;
+  gap: 6px;
+}
+
 .settings-btn {
   padding: 6px 12px;
   font-size: 12px;

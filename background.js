@@ -5,6 +5,7 @@ const DEFAULTS = {
   instruction:
     "你是答题助手。请识别图片中的内容并作答：若图片包含题目，直接给出答案并附简要解析；若是一般文本或图表，请准确提炼其中关键信息。请使用中文回答。",
   stream: true,
+  historyRetentionDays: 7,
 };
 
 chrome.runtime.onMessage.addListener((msg, sender) => {
@@ -25,10 +26,15 @@ async function handleCapture(tab, region, dpr, jobId) {
     await new Promise((r) => setTimeout(r, 150));
     const base64 = await captureAndCrop(tab, region, dpr);
     send({ type: "ANSWER_START" });
-    await callVisionAPI(cfg, base64, (chunk) =>
-      send({ type: "ANSWER_CHUNK", text: chunk })
-    );
+    let fullAnswer = "";
+    await callVisionAPI(cfg, base64, (chunk) => {
+      fullAnswer += chunk;
+      send({ type: "ANSWER_CHUNK", text: chunk });
+    });
     send({ type: "ANSWER_DONE" });
+    if (fullAnswer) {
+      await saveHistory(base64, fullAnswer, cfg);
+    }
   } catch (err) {
     send({ type: "ANSWER_ERROR", message: err.message || String(err) });
   }
@@ -167,6 +173,39 @@ async function readSSE(res, onChunk) {
     }
   }
 }
+
+// ============ 快捷键 ============
+// ============ 历史记录管理 ============
+async function saveHistory(base64Image, answer, config) {
+  const { history = [] } = await chrome.storage.local.get({ history: [] });
+  const record = {
+    id: Date.now().toString(),
+    timestamp: Date.now(),
+    image: base64Image,
+    answer: answer,
+    model: config.model
+  };
+  history.unshift(record);
+  if (history.length > 100) {
+    history.length = 100;
+  }
+  await chrome.storage.local.set({ history });
+}
+
+async function cleanExpiredHistory() {
+  const { history = [], historyRetentionDays = 7 } =
+    await chrome.storage.local.get(['history', 'historyRetentionDays']);
+
+  const cutoffTime = Date.now() - (historyRetentionDays * 24 * 60 * 60 * 1000);
+  const filtered = history.filter(record => record.timestamp > cutoffTime);
+
+  if (filtered.length < history.length) {
+    await chrome.storage.local.set({ history: filtered });
+  }
+}
+
+cleanExpiredHistory();
+setInterval(cleanExpiredHistory, 60 * 60 * 1000);
 
 // ============ 快捷键 ============
 chrome.commands.onCommand.addListener(async (command) => {

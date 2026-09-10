@@ -33,6 +33,10 @@ function setStatus(text, ok = true) {
 $("captureBtn").addEventListener("click", () => launch({ type: "START_SELECTION" }));
 $("fullBtn").addEventListener("click", () => launch({ type: "CAPTURE_FULL" }));
 
+$("historyBtn").addEventListener("click", () => {
+  window.location.href = "history.html";
+});
+
 $("settingsBtn").addEventListener("click", () => {
   window.location.href = "settings.html";
 });

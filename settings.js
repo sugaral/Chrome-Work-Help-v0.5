@@ -5,6 +5,7 @@ const DEFAULTS = {
   instruction:
     "你是答题助手。请识别图片中的内容并作答：若图片包含题目，直接给出答案并附简要解析；若是一般文本或图表，请准确提炼其中关键信息。请使用中文回答。",
   stream: true,
+  historyRetentionDays: 7,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -16,6 +17,7 @@ async function load() {
   $("apiKey").value = cfg.apiKey;
   $("model").value = cfg.model;
   $("instruction").value = cfg.instruction;
+  $("historyRetentionDays").value = cfg.historyRetentionDays;
 
   hasUnsavedChanges = false;
   updateUnsavedHint();
@@ -37,7 +39,8 @@ function collect() {
     apiKey: $("apiKey").value.trim(),
     model: $("model").value.trim() || DEFAULTS.model,
     instruction: $("instruction").value.trim() || DEFAULTS.instruction,
-    stream: true, // 始终启用流式输出
+    stream: true,
+    historyRetentionDays: parseInt($("historyRetentionDays").value) || 7,
   };
 }
 
@@ -65,6 +68,7 @@ window.addEventListener("DOMContentLoaded", () => {
   $("apiKey").addEventListener("input", markUnsaved);
   $("model").addEventListener("input", markUnsaved);
   $("instruction").addEventListener("input", markUnsaved);
+  $("historyRetentionDays").addEventListener("input", markUnsaved);
 });
 
 load();

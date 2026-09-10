@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="history.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <button id="backBtn" class="back-btn">← 返回</button>
+      <h1>历史记录</h1>
+      <button id="clearAllBtn" class="clear-btn">清空全部</button>
+    </div>
+
+    <div id="emptyHint" class="empty-hint" style="display:none;">
+      暂无历史记录
+    </div>
+
+    <div id="historyList" class="history-list"></div>
+
+    <div id="status" class="status"></div>
+  </div>
+  <script src="history.js"></script>
+</body>
+</html>

@@ -27,6 +27,11 @@
       <label for="instruction">作答指令</label>
       <textarea id="instruction" rows="5"></textarea>
     </div>
+    <div class="section">
+      <label for="historyRetentionDays">历史记录保留天数</label>
+      <input id="historyRetentionDays" type="number" min="1" max="365" placeholder="7">
+      <div class="hint">超过此天数的历史记录将自动删除，默认 7 天</div>
+    </div>
 
     <div class="button-row">
       <span id="unsavedHint" class="unsaved-hint" style="display:none;">●  有未保存更改</span>
