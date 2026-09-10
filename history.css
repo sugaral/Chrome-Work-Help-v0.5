@@ -170,6 +170,143 @@ body {
   background: #fef2f2;
 }
 
+.conversation-list {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.conversation-item {
+  margin-bottom: 10px;
+  padding: 10px;
+  background: #f9fafb;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.conversation-q {
+  color: #2563eb;
+  margin-bottom: 6px;
+}
+
+.conversation-a {
+  color: #1f2937;
+  line-height: 1.6;
+}
+
+.continue-dialog {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.continue-dialog-content {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.continue-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.continue-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+}
+.continue-close:hover {
+  color: #1f2937;
+}
+
+.continue-input {
+  width: 100%;
+  padding: 10px;
+  font-size: 13px;
+  font-family: inherit;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.continue-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.continue-status {
+  min-height: 20px;
+  font-size: 12px;
+  margin: 10px 0;
+  text-align: center;
+}
+.continue-status.active {
+  color: #2563eb;
+}
+.continue-status.success {
+  color: #16a34a;
+}
+.continue-status.error {
+  color: #dc2626;
+}
+
+.continue-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.continue-cancel,
+.continue-submit {
+  padding: 8px 16px;
+  font-size: 13px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.continue-cancel {
+  background: #fff;
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+.continue-cancel:hover {
+  background: #f3f4f6;
+}
+
+.continue-submit {
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+}
+.continue-submit:hover {
+  filter: brightness(1.08);
+}
+.continue-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .status {
   min-height: 20px;
   font-size: 12px;

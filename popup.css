@@ -81,18 +81,21 @@ body {
 
 .footer-btns {
   display: flex;
+  align-items: center;
   gap: 6px;
 }
 
 .settings-btn {
   padding: 6px 12px;
   font-size: 12px;
+  line-height: 1;
   color: #374151;
   background: #fff;
   border: 1px solid #d1d5db;
   border-radius: 7px;
   cursor: pointer;
   transition: background 0.2s;
+  white-space: nowrap;
 }
 .settings-btn:hover { background: #f3f4f6; }
 

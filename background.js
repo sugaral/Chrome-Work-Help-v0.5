@@ -8,9 +8,12 @@ const DEFAULTS = {
   historyRetentionDays: 7,
 };
 
-chrome.runtime.onMessage.addListener((msg, sender) => {
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === "CAPTURE_REGION" && sender.tab) {
     handleCapture(sender.tab, msg.region, msg.dpr || 1, msg.jobId);
+  } else if (msg.type === "CONTINUE_CONVERSATION") {
+    handleContinueConversation(msg.recordId, msg.question, sendResponse);
+    return true;
   }
 });
 
@@ -64,12 +67,25 @@ async function captureAndCrop(tab, region, dpr) {
     throw new Error("截图区域超出可视范围");
   }
 
-  const canvas = new OffscreenCanvas(sw, sh);
+  // 压缩图片：如果宽度或高度超过 800px，等比缩放
+  const MAX_SIZE = 800;
+  let targetW = sw;
+  let targetH = sh;
+  if (sw > MAX_SIZE || sh > MAX_SIZE) {
+    const scale = Math.min(MAX_SIZE / sw, MAX_SIZE / sh);
+    targetW = Math.round(sw * scale);
+    targetH = Math.round(sh * scale);
+  }
+
+  const canvas = new OffscreenCanvas(targetW, targetH);
   const ctx = canvas.getContext("2d");
-  ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, sw, sh);
+  ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, targetW, targetH);
   bitmap.close();
 
-  const outBlob = await canvas.convertToBlob({ type: "image/png" });
+  const outBlob = await canvas.convertToBlob({
+    type: "image/jpeg",
+    quality: 0.85
+  });
   return blobToBase64(outBlob);
 }
 
@@ -92,6 +108,64 @@ async function blobToBase64(blob) {
  *   - onChunk(text)：每收到一段回答时调用
  * =============================================
  */
+async function callConversationAPI(config, record, question, onChunk) {
+  const messages = [
+    {
+      role: "user",
+      content: [
+        { type: "text", text: config.instruction },
+        {
+          type: "image_url",
+          image_url: { url: "data:image/jpeg;base64," + record.image },
+        },
+      ],
+    },
+    {
+      role: "assistant",
+      content: record.answer
+    }
+  ];
+
+  if (record.conversations && record.conversations.length > 0) {
+    record.conversations.forEach(conv => {
+      messages.push({ role: "user", content: conv.question });
+      messages.push({ role: "assistant", content: conv.answer });
+    });
+  }
+
+  messages.push({ role: "user", content: question });
+
+  const body = {
+    model: config.model,
+    stream: !!config.stream,
+    messages: messages
+  };
+
+  const res = await fetch(config.apiUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + config.apiKey,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(
+      `API 请求失败 (HTTP ${res.status})${text ? "：" + text.slice(0, 300) : ""}`
+    );
+  }
+
+  if (body.stream) {
+    await readSSE(res, onChunk);
+  } else {
+    const data = await res.json();
+    const content = data.choices?.[0]?.message?.content ?? "";
+    if (content) onChunk(content);
+  }
+}
+
 async function callVisionAPI(config, imageBase64, onChunk) {
   const body = {
     model: config.model,
@@ -103,7 +177,7 @@ async function callVisionAPI(config, imageBase64, onChunk) {
           { type: "text", text: config.instruction },
           {
             type: "image_url",
-            image_url: { url: "data:image/png;base64," + imageBase64 },
+            image_url: { url: "data:image/jpeg;base64," + imageBase64 },
           },
         ],
       },
@@ -176,20 +250,61 @@ async function readSSE(res, onChunk) {
 
 // ============ 快捷键 ============
 // ============ 历史记录管理 ============
-async function saveHistory(base64Image, answer, config) {
+async function saveHistory(base64Image, answer, config, parentId = null) {
   const { history = [] } = await chrome.storage.local.get({ history: [] });
   const record = {
     id: Date.now().toString(),
     timestamp: Date.now(),
     image: base64Image,
     answer: answer,
-    model: config.model
+    model: config.model,
+    parentId: parentId,
+    conversations: []
   };
   history.unshift(record);
   if (history.length > 100) {
     history.length = 100;
   }
   await chrome.storage.local.set({ history });
+  return record.id;
+}
+
+async function handleContinueConversation(recordId, question, sendResponse) {
+  try {
+    const { history = [] } = await chrome.storage.local.get({ history: [] });
+    const record = history.find(r => r.id === recordId);
+
+    if (!record) {
+      sendResponse({ success: false, error: "历史记录不存在" });
+      return;
+    }
+
+    const cfg = await chrome.storage.local.get(DEFAULTS);
+    if (!cfg.apiKey) {
+      sendResponse({ success: false, error: "请先在插件设置中填写 API Key" });
+      return;
+    }
+
+    let fullAnswer = "";
+
+    await callConversationAPI(cfg, record, question, (chunk) => {
+      fullAnswer += chunk;
+    });
+
+    if (!record.conversations) {
+      record.conversations = [];
+    }
+    record.conversations.push({
+      question: question,
+      answer: fullAnswer,
+      timestamp: Date.now()
+    });
+
+    await chrome.storage.local.set({ history });
+    sendResponse({ success: true, answer: fullAnswer });
+  } catch (err) {
+    sendResponse({ success: false, error: err.message || String(err) });
+  }
 }
 
 async function cleanExpiredHistory() {

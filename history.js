@@ -1,21 +1,40 @@
 const $ = (id) => document.getElementById(id);
 
+let allHistory = [];
+let displayedCount = 0;
+const PAGE_SIZE = 20;
+
 async function load() {
   const { history = [] } = await chrome.storage.local.get({ history: [] });
+  allHistory = history;
+  displayedCount = 0;
 
-  if (history.length === 0) {
+  if (allHistory.length === 0) {
     $("emptyHint").style.display = "block";
     $("historyList").style.display = "none";
   } else {
     $("emptyHint").style.display = "none";
     $("historyList").style.display = "flex";
-    renderHistory(history);
+    $("historyList").innerHTML = "";
+    loadMore();
+  }
+}
+
+function loadMore() {
+  const start = displayedCount;
+  const end = Math.min(displayedCount + PAGE_SIZE, allHistory.length);
+  const chunk = allHistory.slice(start, end);
+
+  renderHistory(chunk);
+  displayedCount = end;
+
+  if (displayedCount >= allHistory.length) {
+    removeScrollListener();
   }
 }
 
 function renderHistory(history) {
   const list = $("historyList");
-  list.innerHTML = "";
 
   history.forEach((record) => {
     const item = document.createElement("div");
@@ -50,8 +69,10 @@ function renderHistory(history) {
       <div class="history-actions">
         ${needsExpand ? `<button class="history-btn" data-action="toggle" data-id="${record.id}">展开全文</button>` : ""}
         <button class="history-btn" data-action="copy" data-id="${record.id}">复制答案</button>
+        <button class="history-btn" data-action="continue" data-id="${record.id}">继续提问</button>
         <button class="history-btn delete" data-action="delete" data-id="${record.id}">删除</button>
       </div>
+      ${record.conversations && record.conversations.length > 0 ? renderConversations(record.conversations) : ""}
     `;
 
     list.appendChild(item);
@@ -67,6 +88,10 @@ function renderHistory(history) {
       const record = history.find(r => r.id === btn.dataset.id);
       if (record) copyAnswer(record.answer, btn);
     });
+  });
+
+  list.querySelectorAll('[data-action="continue"]').forEach(btn => {
+    btn.addEventListener("click", () => showContinueDialog(btn.dataset.id));
   });
 
   list.querySelectorAll('[data-action="delete"]').forEach(btn => {
@@ -119,11 +144,17 @@ async function copyAnswer(text, btn) {
 }
 
 async function deleteRecord(id) {
-  const { history = [] } = await chrome.storage.local.get({ history: [] });
-  const filtered = history.filter(r => r.id !== id);
-  await chrome.storage.local.set({ history: filtered });
+  allHistory = allHistory.filter(r => r.id !== id);
+  await chrome.storage.local.set({ history: allHistory });
   setStatus("已删除", true);
-  load();
+
+  const item = document.querySelector(`.history-item[data-id="${id}"]`);
+  if (item) item.remove();
+
+  if (allHistory.length === 0) {
+    $("emptyHint").style.display = "block";
+    $("historyList").style.display = "none";
+  }
 }
 
 async function clearAll() {
@@ -142,11 +173,110 @@ function setStatus(text, ok = true) {
   setTimeout(() => (el.textContent = ""), 2500);
 }
 
+function renderConversations(conversations) {
+  return `
+    <div class="conversation-list">
+      ${conversations.map(conv => `
+        <div class="conversation-item">
+          <div class="conversation-q"><strong>追问：</strong>${escapeHtml(conv.question)}</div>
+          <div class="conversation-a">${escapeHtml(conv.answer)}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function showContinueDialog(recordId) {
+  const existing = document.querySelector('.continue-dialog');
+  if (existing) existing.remove();
+
+  const dialog = document.createElement('div');
+  dialog.className = 'continue-dialog';
+  dialog.innerHTML = `
+    <div class="continue-dialog-content">
+      <div class="continue-dialog-header">
+        <span>继续提问</span>
+        <button class="continue-close">✕</button>
+      </div>
+      <textarea class="continue-input" placeholder="输入你的问题..." rows="3"></textarea>
+      <div class="continue-status"></div>
+      <div class="continue-actions">
+        <button class="continue-cancel">取消</button>
+        <button class="continue-submit">发送</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(dialog);
+
+  const input = dialog.querySelector('.continue-input');
+  const status = dialog.querySelector('.continue-status');
+  const submitBtn = dialog.querySelector('.continue-submit');
+
+  dialog.querySelector('.continue-close').addEventListener('click', () => dialog.remove());
+  dialog.querySelector('.continue-cancel').addEventListener('click', () => dialog.remove());
+
+  submitBtn.addEventListener('click', async () => {
+    const question = input.value.trim();
+    if (!question) return;
+
+    submitBtn.disabled = true;
+    input.disabled = true;
+    status.textContent = '正在思考...';
+    status.className = 'continue-status active';
+
+    try {
+      chrome.runtime.sendMessage({
+        type: 'CONTINUE_CONVERSATION',
+        recordId: recordId,
+        question: question
+      }, (response) => {
+        if (response && response.success) {
+          status.textContent = '完成';
+          status.className = 'continue-status success';
+          setTimeout(() => {
+            dialog.remove();
+            load();
+          }, 800);
+        } else {
+          status.textContent = '错误：' + (response?.error || '未知错误');
+          status.className = 'continue-status error';
+          submitBtn.disabled = false;
+          input.disabled = false;
+        }
+      });
+    } catch (err) {
+      status.textContent = '发送失败：' + err.message;
+      status.className = 'continue-status error';
+      submitBtn.disabled = false;
+      input.disabled = false;
+    }
+  });
+
+  input.focus();
+}
+
 function escapeHtml(s) {
   return String(s)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
+}
+
+function setupScrollListener() {
+  window.addEventListener("scroll", handleScroll);
+}
+
+function removeScrollListener() {
+  window.removeEventListener("scroll", handleScroll);
+}
+
+function handleScroll() {
+  if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+    if (displayedCount < allHistory.length) {
+      loadMore();
+    }
+  }
 }
 
 $("backBtn").addEventListener("click", () => {
@@ -156,3 +286,4 @@ $("backBtn").addEventListener("click", () => {
 $("clearAllBtn").addEventListener("click", clearAll);
 
 load();
+setupScrollListener();
